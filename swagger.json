@@ -5,7 +5,7 @@
     "description": "Contacts API",
     "version": "1.0.0"
   },
-  "host": "https://soccer-players-zv84.onrender.com",
+  "host": "soccer-players-zv84.onrender.com",
   "basePath": "/",
   "schemes": [
     "https"
