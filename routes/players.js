@@ -7,4 +7,10 @@ router.get("/", playersController.getAll);
 
 router.get("/:id", playersController.getSingle);
 
+router.post("/", playersController.createPlayer);
+
+router.put("/:id", playersController.updatePlayer);
+
+router.delete("/:id", playersController.deletePlayer);
+
 module.exports = router;
