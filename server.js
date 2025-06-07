@@ -2,6 +2,7 @@ const express = require("express");
 
 const mongodb = require("./data/database");
 const app = express();
+app.set("json spaces", 2);
 const port = process.env.PORT || 8080;
 
 app.use("/", require("./routes"));
