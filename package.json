@@ -1,0 +1,22 @@
+{
+  "name": "soccer-players",
+  "version": "1.0.0",
+  "description": "My second project",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ProudNamwera4/soccer-players.git"
+  },
+  "author": "Namwera Proud",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ProudNamwera4/soccer-players/issues"
+  },
+  "homepage": "https://github.com/ProudNamwera4/soccer-players#readme",
+  "dependencies": {
+    "express": "^5.1.0"
+  }
+}
