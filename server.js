@@ -23,6 +23,13 @@ app.use((req, res, next) => {
 app.use("/", require("./routes"));
 app.use(bodyParser.json());
 
+process.on("uncaughtException", (err, origin) => {
+  console.log(
+    process.stderr.fd,
+    `Caught exception: ${err}\n` + `Exception origin: ${origin}`
+  );
+});
+
 // Start the server
 mongodb.initDb((err) => {
   if (err) {

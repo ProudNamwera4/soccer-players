@@ -1,24 +1,37 @@
 const mongodb = require("../data/database");
 const ObjectId = require("mongodb").ObjectId;
 
-const getAll = async (req, res) => {
-  const result = await mongodb.getDatabase().db().collection("players").find();
-  result.toArray().then((players) => {
-    res.setHeader("Content-Type", "application/json");
-    res.status(200).json(players);
-  });
-};
-const getSingle = async (req, res) => {
-  const playerId = new ObjectId(req.params.id);
-  const result = await mongodb
+const getAll = (req, res) => {
+  mongodb
     .getDatabase()
     .db()
     .collection("players")
-    .find({ _id: playerId });
-  result.toArray().then((players) => {
-    res.setHeader("Content-Type", "application/json");
-    res.status(200).json(players[0]);
-  });
+    .find()
+    .toArray((err, players) => {
+      if (err) {
+        res.status(400).json({ message: err });
+      }
+      res.setHeader("Content-Type", "application/json");
+      res.status(200).json(players);
+    });
+};
+const getSingle = (req, res) => {
+  if (!ObjectId.isValid(req.params.id)) {
+    res.status(400).json("Must use a valid player id to find a profile.");
+  }
+  const playerId = new ObjectId(req.params.id);
+  mongodb
+    .getDb()
+    .db()
+    .collection("players")
+    .find({ _id: playerId })
+    .toArray((err, player) => {
+      if (err) {
+        res.status(400).json({ message: err });
+      }
+      res.setHeader("Content-Type", "application/json");
+      res.status(200).json(player[0]);
+    });
 };
 const createPlayer = async (req, res) => {
   const player = {
