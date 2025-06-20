@@ -1,3 +1,5 @@
+//server.js
+require("dotenv").config();
 const express = require("express");
 const bodyParser = require("body-parser");
 const passport = require("passport");
@@ -47,9 +49,10 @@ passport.use(
     {
       clientID: process.env.GITHUB_CLIENT_ID,
       clientSecret: process.env.GITHUB_CLIENT_SECRET,
-      callback: process.env.CALLBACK_URL,
+      callbackURL: process.env.CALLBACK_URL,
     },
-    function (accessToken, refreshToken, profile, done) {
+    (accessToken, refreshToken, profile, done) => {
+      console.log("✅ GitHub profile received:", profile);
       return done(null, profile);
     }
   )
@@ -63,20 +66,24 @@ passport.deserializeUser((user, done) => {
 });
 
 app.get("/", (req, res) => {
-  res.send(
-    req.session.user !== undefined
-      ? `Logged in as ${req.session.user.displayName}`
-      : "Logged Out"
-  );
+  const user = req.session.user;
+  if (!user) return res.send("Logged Out");
+
+  const name = user.displayName || user.username || "Unknown";
+  const avatar = user.photos?.[0]?.value || "";
+
+  res.send(`
+    <h2>Logged in as ${name}</h2>
+  `);
 });
 
 app.get(
   "/github/callback",
   passport.authenticate("github", {
     failureRedirect: "/api-docs",
-    session: false,
   }),
   (req, res) => {
+    console.log("🔐 req.user in /github/callback:", req.user);
     req.session.user = req.user;
     res.redirect("/");
   }

@@ -4,11 +4,6 @@ const passport = require("passport");
 router.use("/", require("./swagger"));
 router.use("/players", require("./players"));
 
-router.get("/", (req, res) => {
-  //#Swagger.tags=["Hello World"]
-  res.send("Hello World");
-});
-
 router.get("/login", passport.authenticate("github"), (req, res) => {});
 
 router.get("/logout", function (req, res, next) {
