@@ -1,38 +1,45 @@
 const mongodb = require("../data/database");
-const ObjectId = require("mongodb").ObjectId;
+const { ObjectId } = require("mongodb");
 
-const getAll = (req, res) => {
-  mongodb
-    .getDatabase()
-    .db()
-    .collection("players")
-    .find()
-    .toArray((err, players) => {
-      if (err) {
-        res.status(400).json({ message: err });
-      }
-      res.setHeader("Content-Type", "application/json");
-      res.status(200).json(players);
-    });
+const getAll = async (req, res) => {
+  console.log("➡️ Reached getAllPlayers");
+  try {
+    const db = mongodb.getDatabase().db();
+    console.log("✅ DB accessed");
+
+    const players = await db.collection("players").find().toArray();
+    console.log("📦 Players fetched:", players.length);
+
+    return res.status(200).json(players);
+  } catch (err) {
+    console.error("❌ Error in getAllPlayers:", err);
+    return res.status(500).json({ message: err.message });
+  }
 };
-const getSingle = (req, res) => {
+
+const getSingle = async (req, res) => {
   if (!ObjectId.isValid(req.params.id)) {
-    res.status(400).json("Must use a valid player id to find a profile.");
+    return res
+      .status(400)
+      .json("Must use a valid player id to find a profile.");
   }
   const playerId = new ObjectId(req.params.id);
-  mongodb
-    .getDb()
-    .db()
-    .collection("players")
-    .find({ _id: playerId })
-    .toArray((err, player) => {
-      if (err) {
-        res.status(400).json({ message: err });
-      }
-      res.setHeader("Content-Type", "application/json");
-      res.status(200).json(player[0]);
-    });
+
+  try {
+    const db = mongodb.getDatabase().db();
+    const player = await db.collection("players").findOne({ _id: playerId });
+
+    if (!player) {
+      return res.status(404).json({ message: "Player not found" });
+    }
+
+    return res.status(200).json(player);
+  } catch (err) {
+    console.error("❌ Error in getSingle:", err);
+    return res.status(500).json({ message: err.message });
+  }
 };
+
 const createPlayer = async (req, res) => {
   const player = {
     name: req.body.name,
@@ -45,25 +52,27 @@ const createPlayer = async (req, res) => {
   };
 
   try {
-    const response = await mongodb
-      .getDatabase()
-      .db()
-      .collection("players")
-      .insertOne(player);
+    const db = mongodb.getDatabase().db();
+    const response = await db.collection("players").insertOne(player);
 
     if (response.acknowledged) {
-      res.status(201).json({ id: response.insertedId, ...player });
+      return res.status(201).json({ id: response.insertedId, ...player });
     } else {
-      res.status(500).json({ error: "Failed to create player." });
+      return res.status(500).json({ error: "Failed to create player." });
     }
   } catch (err) {
-    res.status(500).json({ error: err.message || "Internal server error" });
+    console.error("❌ Error in createPlayer:", err);
+    return res
+      .status(500)
+      .json({ error: err.message || "Internal server error" });
   }
 };
 
 const updatePlayer = async (req, res) => {
   if (!ObjectId.isValid(req.params.id)) {
-    res.status(400).json("Must use a valid player id to update a profile.");
+    return res
+      .status(400)
+      .json("Must use a valid player id to update a profile.");
   }
   const userId = new ObjectId(req.params.id);
   const player = {
@@ -75,38 +84,50 @@ const updatePlayer = async (req, res) => {
     goals: req.body.goals,
     assists: req.body.assists,
   };
-  const response = await mongodb
-    .getDatabase()
-    .db()
-    .collection("players")
-    .replaceOne({ _id: userId }, player);
-  if (response.modifiedCount > 0) {
-    res.status(204).send();
-  } else {
-    res
+
+  try {
+    const db = mongodb.getDatabase().db();
+    const response = await db
+      .collection("players")
+      .replaceOne({ _id: userId }, player);
+
+    if (response.modifiedCount > 0) {
+      return res.status(204).send();
+    } else {
+      return res
+        .status(404)
+        .json({ message: "Player not found or no changes made." });
+    }
+  } catch (err) {
+    console.error("❌ Error in updatePlayer:", err);
+    return res
       .status(500)
-      .json(response.error || "Some error occured while updating the profile");
+      .json({ error: err.message || "Internal server error" });
   }
 };
 
 const deletePlayer = async (req, res) => {
   if (!ObjectId.isValid(req.params.id)) {
-    res.status(400).json("Must use a valid player id to delete a profile.");
+    return res
+      .status(400)
+      .json("Must use a valid player id to delete a profile.");
   }
   const userId = new ObjectId(req.params.id);
-  const response = await mongodb
-    .getDatabase()
-    .db()
-    .collection("players")
-    .deleteOne({ _id: userId });
-  if (response.deletedCount > 0) {
-    res.status(204).send();
-  } else {
-    res
+
+  try {
+    const db = mongodb.getDatabase().db();
+    const response = await db.collection("players").deleteOne({ _id: userId });
+
+    if (response.deletedCount > 0) {
+      return res.status(204).send();
+    } else {
+      return res.status(404).json({ message: "Player not found." });
+    }
+  } catch (err) {
+    console.error("❌ Error in deletePlayer:", err);
+    return res
       .status(500)
-      .json(
-        response.error || "Some error occured while deleting the player profile"
-      );
+      .json({ error: err.message || "Internal server error" });
   }
 };
 
